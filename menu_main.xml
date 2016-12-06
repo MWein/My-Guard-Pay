@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.weinbergsoftware.www.myguardpay.MainActivity">
+    <item android:title="Add Orders"
+        android:id="@+id/AddOrders"
+        android:enabled="true"
+        android:visible="true" />
+    <item android:title="New LES"
+        android:id="@+id/NewLES"
+        android:visible="true"
+        android:enabled="true"
+        android:checkable="false" />
+    <item android:title="Update Rank"
+        android:visible="true"
+        android:enabled="true"
+        android:id="@+id/EditRank" />
+</menu>

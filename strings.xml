@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">MyGuardPay</string>
+    <string name="action_settings">Settings</string>
+
+    <string-array name="rank_array">
+        <item>PVT</item>
+        <item>PV2</item>
+        <item>PFC</item>
+        <item>SPC</item>
+        <item>SGT</item>
+        <item>SSG</item>
+        <item>SFC</item>
+    </string-array>
+
+    <string-array name="orders_type">
+        <item>MFH Duty</item>
+        <item>Drill</item>
+        <item>Annual Training</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="month_array">
+        <item>JAN</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>APR</item>
+        <item>MAY</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AUG</item>
+        <item>SEP</item>
+        <item>OCT</item>
+        <item>NOV</item>
+        <item>DEC</item>
+    </string-array>
+
+
+</resources>
