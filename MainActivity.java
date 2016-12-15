@@ -1,26 +1,27 @@
 package com.weinbergsoftware.www.myguardpay;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Locale;
+
 
 
 public class MainActivity extends AppCompatActivity {
 
 
-    // TODO Codify Request Codes Somewhere
-
-    // TODO If the app was never opened, prompt the user to fill out rank information
+    // TODO Get one of them add buttons up in this bitch to add orders
 
 
     //***************** UI Variables *******************
@@ -33,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView MUTAsOwedView;
 
     // ListView Stuff
-    private OrdersAdapter mOrdersAdapter;
-    private ListView OrdersListView;
+    private OrdersAdapter OrdersManager;
     //**************************************************
 
 
@@ -48,70 +48,125 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+    /*
+    Called when the activity is created... which is when the app is first opened
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        
 
         // Setup UI Variables
-        RankButton = (ImageButton) findViewById(R.id.updateRank);
+        RankButton = (ImageButton) findViewById(R.id.UpdateRank);
         RankTISView = (TextView) findViewById(R.id.RankText);
         AmountOwedView = (TextView) findViewById(R.id.DollarAmount);
         MUTAsOwedView = (TextView) findViewById(R.id.MUTAs);
-        OrdersListView = (ListView) findViewById(R.id.OrdersList);
+        ListView OrdersListView = (ListView) findViewById(R.id.OrdersList);
 
 
 
-
-        // TODO Test ListView
-
-        //public OrdersObject(int ordersType, int rank, int[] EnlDate, int[] startDate, int[] endDate)
-
-        int[] enlDate = {1, 2011};
-        int[] startDate = {28, 10, 2016};
-        int[] endDate = {28, 10, 2016};
-        OrdersObject testObj = new OrdersObject(0, 3, enlDate, startDate, endDate);
-
-        OrdersObject testObj2 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj3 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj4 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj5 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj6 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj7 = new OrdersObject(0, 3, enlDate, startDate, endDate);
-        OrdersObject testObj8 = new OrdersObject(0, 3, enlDate, startDate, endDate);
+        // Load rank information
+        if (!loadRankData()) {
+            // Start update rank activity to retrieve rank from user if none is saved
+            startUpdateRank(findViewById(R.id.UpdateRank));
+        }
 
 
-        ArrayList<OrdersObject> myShit = new ArrayList<OrdersObject>();
+        // Create OrdersAdapter
+        OrdersManager = new OrdersAdapter(this);
+        OrdersManager.setRemovePayedButton((Button) findViewById(R.id.PayoutButton)); // Give the payout button to Orders Manager
+        OrdersListView.setAdapter(OrdersManager);
 
+
+
+        // Create listener for listview if editing is a thing I want to do
         /*
-        myShit.add(testObj);
-        myShit.add(testObj2);
-        myShit.add(testObj3);
-        myShit.add(testObj4);
-        myShit.add(testObj5);
-        myShit.add(testObj6);
-        myShit.add(testObj7);
-        myShit.add(testObj8);
+        final Context context = this;
+        OrdersListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                OrdersObject selectedOrders = (OrdersObject) OrdersManager.getItem(position);
+
+                Intent editIntent = new Intent(context, Add_Orders.class);
+
+                editIntent.putExtra(getString(R.string.orders_type), selectedOrders.getOrdersType()); // Orders Type
+                editIntent.putExtra(getString(R.string.saved_rank), Rank);
+                editIntent.putExtra(getString(R.string.saved_TIS), RankAndTIS.getYearsInService(EnlistmentMonth, EnlistmentYear));
+
+                // Finish this up
+                // Start Date Day
+                // Start Date Month
+                // Start Date Year
+
+                // End Date Day
+                // End Date Month
+                // End Date Year
+
+
+                startActivityForResult(editIntent, 2);
+            }
+
+        });
         */
 
-        mOrdersAdapter = new OrdersAdapter(this, myShit);
-        OrdersListView.setAdapter(mOrdersAdapter);
-
-        // TODO Test ListView
 
 
-
-
-
-
-        // Load everything from file
-        loadSavedData();
+        // Update rank and TIS display
+        updateRankDisplay();
+        updateMoneyAndMUTAs();
 
     }
+
+
+
+    // Save rank data to preference file
+    public void saveRankData() {
+        // Load shared preferences object and editor
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        // Apply Rank information to editor
+        editor.putInt(getString(R.string.saved_rank), Rank);
+        editor.putInt(getString(R.string.saved_enl_month), EnlistmentMonth);
+        editor.putInt(getString(R.string.saved_enl_year), EnlistmentYear);
+
+        // Apply changes
+        editor.apply();
+    }
+
+
+    /*
+    Loads rank information from preferences
+    If preference data does not exist, sets rank variables to defaults and returns false
+    Otherwise, returns true if successful
+     */
+    public boolean loadRankData() {
+        // Load shared preferences object
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+
+        // Load Rank information from sharedPref
+        Rank = sharedPref.getInt(getString(R.string.saved_rank), -1);
+        EnlistmentMonth = sharedPref.getInt(getString(R.string.saved_enl_month), 0);
+        EnlistmentYear = sharedPref.getInt(getString(R.string.saved_enl_year), 2010);
+
+        /* If the default value for rank is returned, the file is empty
+         Return false */
+        if (Rank == -1) {
+            Rank = 0;
+            return false;
+        }
+
+        // If everything loaded from file
+        return true;
+    }
+
+
+
 
 
 
@@ -123,32 +178,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-    // Save everything to file
-    public void saveData() {
-
-        // TODO Write
-
-    }
-
-
-    // Load up everything from file
-    public void loadSavedData() {
-
-        // TODO Load Rank and Enlistment Date From File
-        Rank = 0;
-        EnlistmentMonth = 4;
-        EnlistmentYear = 2010;
-
-
-        // TODO Load Fucking Everything Else
-
-
-        // Update Rank, Money Owed, and MUTAs owed Displays
-        updateRankDisplay();
-        updateMoneyAndMUTAs();
-    }
 
 
 
@@ -166,38 +195,41 @@ public class MainActivity extends AppCompatActivity {
 
         // Update Rank Text
         int TimeInService = RankAndTIS.getYearsInService(EnlistmentMonth, EnlistmentYear);
-        String yearStr = "Years";
-        if (TimeInService == 1) yearStr = "Year";
+        String yearStr = getString(R.string.year_string_plural);
+        if (TimeInService == 1) yearStr = getString(R.string.year_string_singular);
         RankTISView.setText(String.format(Locale.US, "%s, %d %s", RankAndTIS.rankForCode(Rank), TimeInService, yearStr));
-
     }
 
 
     // Update MUTA's and Money Owed
     public void updateMoneyAndMUTAs() {
 
-        // TODO Comment this shit
-
-        double[] data = mOrdersAdapter.getTotalMUTAsAndPay();
+        // Retrieve orders and pay information from Orders Manager
+        double[] data = OrdersManager.getTotalMUTAsAndPay();
         double totalPay = data[0];
         int MUTACount = (int)data[1];
 
-        String mutaStr = "MUTAs";
-        if (MUTACount == 1) mutaStr = "MUTA";
+        // MUTA formatting to read 'x MUTAs'
+        String mutaStr = getString(R.string.muta_string_plural);
+        if (MUTACount == 1) mutaStr = getString(R.string.muta_string_singular);
         MUTAsOwedView.setText(String.format(Locale.US, "%d %s", MUTACount, mutaStr));
 
+        // Dollar formatting
         AmountOwedView.setText(String.format(Locale.US, "$%.2f", totalPay));
 
     }
+
+
+
 
 
     // Called when user selects the rank button OR the update rank menu item
     // Begins UpdateRank activity
     public void startUpdateRank(View view) {
         Intent intent = new Intent(this, UpdateRank.class);
-        intent.putExtra("Rank", Rank);
-        intent.putExtra("Month", EnlistmentMonth);
-        intent.putExtra("Year", EnlistmentYear);
+        intent.putExtra(getString(R.string.saved_rank), Rank);
+        intent.putExtra(getString(R.string.saved_enl_month), EnlistmentMonth);
+        intent.putExtra(getString(R.string.saved_enl_year), EnlistmentYear);
         startActivityForResult(intent, 0);
     }
 
@@ -207,25 +239,15 @@ public class MainActivity extends AppCompatActivity {
     // Begins AddOrders activity
     public void startAddOrders() {
         Intent intent = new Intent(this, Add_Orders.class);
+        intent.putExtra(getString(R.string.saved_rank), Rank);
+        intent.putExtra(getString(R.string.saved_TIS), RankAndTIS.getYearsInService(EnlistmentMonth, EnlistmentYear));
 
-        // TODO Put anything that might come up
-        intent.putExtra("Rank", Rank);
-        intent.putExtra("TIS", RankAndTIS.getYearsInService(EnlistmentMonth, EnlistmentYear));
+        // TODO Pass array with dates
 
         startActivityForResult(intent, 1);
     }
 
 
-
-    // Called when user selects the new LES menu item
-    // Begins NewLES activity
-    public void startNewLES() {
-
-        // TODO Write this!!
-
-        // Intent Code 2
-
-    }
 
 
 
@@ -236,30 +258,38 @@ public class MainActivity extends AppCompatActivity {
 
         // Request Code 0 is UpdateRank
         if (requestCode == 0 && resultCode == RESULT_OK) {
-            Rank = data.getIntExtra("Rank", 0);
-            EnlistmentMonth = data.getIntExtra("Month", 0);
-            EnlistmentYear = data.getIntExtra("Year", 0);
 
+            // Gather data
+            Rank = data.getIntExtra(getString(R.string.saved_rank), 0);
+            EnlistmentMonth = data.getIntExtra(getString(R.string.saved_enl_month), 0);
+            EnlistmentYear = data.getIntExtra(getString(R.string.saved_enl_year), 0);
+
+            // Save rank data
+            saveRankData();
+
+            // Tell OrdersManager whats up
+            OrdersManager.updateRankAndEnlDate(Rank, new int[]{EnlistmentMonth, EnlistmentYear});
+
+            // Update UI to reflect new rank
             updateRankDisplay();
             updateMoneyAndMUTAs();
-            saveData();
         }
 
         // Request Code 1 is AddOrders
         else if (requestCode == 1 && resultCode == RESULT_OK) {
 
             // Load Orders Type
-            int ordersType = data.getIntExtra("Type", 0);
+            int ordersType = data.getIntExtra(getString(R.string.orders_type), 0);
 
             // Load Start Date
-            int sDay = data.getIntExtra("sDay", 0);
-            int sMonth = data.getIntExtra("sMonth", 0);
-            int sYear = data.getIntExtra("sYear", 0);
+            int sDay = data.getIntExtra(getString(R.string.start_day), 0);
+            int sMonth = data.getIntExtra(getString(R.string.start_month), 0);
+            int sYear = data.getIntExtra(getString(R.string.start_year), 0);
 
             // Load End Date
-            int eDay = data.getIntExtra("eDay", 0);
-            int eMonth = data.getIntExtra("eMonth", 0);
-            int eYear = data.getIntExtra("eYear", 0);
+            int eDay = data.getIntExtra(getString(R.string.end_day), 0);
+            int eMonth = data.getIntExtra(getString(R.string.end_month), 0);
+            int eYear = data.getIntExtra(getString(R.string.end_year), 0);
 
 
             // Create array parameters
@@ -268,24 +298,23 @@ public class MainActivity extends AppCompatActivity {
             int[] endDate = {eDay, eMonth, eYear};
 
             // Create OrdersObject
-            OrdersObject newObj = new OrdersObject(ordersType, Rank, EnlDate, startDate, endDate);
+            OrdersObject newObj = new OrdersObject(false, ordersType, Rank, EnlDate, startDate, endDate);
 
             // Add newObj to the adapter
-            mOrdersAdapter.addOrders(newObj);
+            OrdersManager.addOrders(newObj);
 
+            // Update money and MUTAs display to reflect new information
             updateMoneyAndMUTAs();
-            saveData();
         }
 
-        // Request Code 2 is NewLES
+
+        // Request Code 2 is EditOrders
         else if (requestCode == 2 && resultCode == RESULT_OK) {
 
+            // TODO Pass info back to OrdersManager for updated view
 
-            // TODO Delete Selected Orders
+            // TODO Come back to this
 
-
-            updateMoneyAndMUTAs();
-            saveData();
         }
 
     }
@@ -304,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Edit Rank
         if (id == R.id.EditRank) {
-            startUpdateRank(findViewById(R.id.updateRank));
+            startUpdateRank(findViewById(R.id.UpdateRank));
             return true;
         }
 
@@ -313,13 +342,6 @@ public class MainActivity extends AppCompatActivity {
             startAddOrders();
             return true;
         }
-
-        // New LES
-        else if (id == R.id.NewLES) {
-            startNewLES();
-            return true;
-        }
-
 
         return super.onOptionsItemSelected(item);
     }
