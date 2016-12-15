@@ -37,7 +37,7 @@ public class UpdateRank extends AppCompatActivity {
 
 
 
-    //***************** My Methods *******************
+    //******************** Methods *********************
 
 
     @Override
@@ -46,7 +46,7 @@ public class UpdateRank extends AppCompatActivity {
         setContentView(R.layout.activity_update_rank);
 
 
-        // Setup Variable
+        // Setup Variables
         Calendar now = Calendar.getInstance();
         CurrentYear = now.get(Calendar.YEAR);
 
@@ -98,9 +98,9 @@ public class UpdateRank extends AppCompatActivity {
 
         // Get Rank and Enlistment Information from MainActivity
         Intent intent = getIntent();
-        int rank = intent.getIntExtra("Rank", 0);
-        int enlistmentMonth = intent.getIntExtra("Month", 0);
-        int enlistmentYear = intent.getIntExtra("Year", 0);
+        int rank = intent.getIntExtra(getString(R.string.saved_rank), 0);
+        int enlistmentMonth = intent.getIntExtra(getString(R.string.saved_enl_month), 0);
+        int enlistmentYear = intent.getIntExtra(getString(R.string.saved_enl_year), 0);
 
         // Populate RankSpinner with ranks
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.rank_array, android.R.layout.simple_spinner_item);
@@ -131,6 +131,7 @@ public class UpdateRank extends AppCompatActivity {
     // Checks if the entered year is valid, changes if its not
     private void yearChanged() {
 
+        // Get the enlisted year and convert it from text to int
         int enlYear = Integer.parseInt(YearEditText.getText().toString());
 
         // Max out at current year
@@ -158,8 +159,8 @@ public class UpdateRank extends AppCompatActivity {
         double MUTAPay = RankAndTIS.getPayPerMuta(rank, TIS);
 
         // Update Years in Service
-        String yearStr = "Years";
-        if (TIS == 1) yearStr = "Year";
+        String yearStr = getString(R.string.year_string_plural);
+        if (TIS == 1) yearStr = getString(R.string.year_string_singular);
         TISTextView.setText(String.format(Locale.US, "%d %s", TIS, yearStr));
 
         // Update Pay Per MUTA
@@ -182,13 +183,13 @@ public class UpdateRank extends AppCompatActivity {
     public void saveChanges(View view) {
 
         // Called because the user might hit the save changes button while editing the year
-        // Dont let the user put '1' as their enlistment year!!
+        // Dont let the user put '1' as their enlistment year!! Thats a lie!
         yearChanged();
 
         Intent intent = new Intent();
-        intent.putExtra("Rank", RankSpinner.getSelectedItemPosition());
-        intent.putExtra("Month", MonthSpinner.getSelectedItemPosition());
-        intent.putExtra("Year", Integer.parseInt(YearEditText.getText().toString()));
+        intent.putExtra(getString(R.string.saved_rank), RankSpinner.getSelectedItemPosition());
+        intent.putExtra(getString(R.string.saved_enl_month), MonthSpinner.getSelectedItemPosition());
+        intent.putExtra(getString(R.string.saved_enl_year), Integer.parseInt(YearEditText.getText().toString()));
         setResult(RESULT_OK, intent);
         finish();
     }
