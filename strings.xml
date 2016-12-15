@@ -2,6 +2,25 @@
     <string name="app_name">MyGuardPay</string>
     <string name="action_settings">Settings</string>
 
+    <string name="muta_string_singular">MUTA</string>
+    <string name="muta_string_plural">MUTAs</string>
+    <string name="year_string_singular">Year</string>
+    <string name="year_string_plural">Years</string>
+
+    <string name="saved_rank">rnk</string>
+    <string name="saved_enl_month">enlmnth</string>
+    <string name="saved_enl_year">enlyr</string>
+    <string name="saved_TIS">tis</string>
+
+    <string name="orders_type">ordtyp</string>
+    <string name="start_day">strtdy</string>
+    <string name="start_month">strtmth</string>
+    <string name="start_year">strtyr</string>
+    <string name="end_day">enddy</string>
+    <string name="end_month">endmth</string>
+    <string name="end_year">endyr</string>
+
+
     <string-array name="rank_array">
         <item>PVT</item>
         <item>PV2</item>
