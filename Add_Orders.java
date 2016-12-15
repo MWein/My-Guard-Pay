@@ -22,18 +22,13 @@ public class Add_Orders extends AppCompatActivity {
 
 
     //***************** Variables **********************
-    private int MinYear;
+    private int MinYear; // Minimum allowable year
 
     // User info
     private int Rank;
     private int TIS;
 
-    // Calculated Information
-    private int MUTACount;
-    private double DollarAmount;
-
     // Modes
-    private boolean WarningMode; // TODO Determine if I need this
     private boolean SingleDateMode;
     //**************************************************
 
@@ -57,6 +52,8 @@ public class Add_Orders extends AppCompatActivity {
     private EditText EndYear;
 
     private Button AddOrdersButton;
+    //**************************************************
+
 
 
     @Override
@@ -66,8 +63,8 @@ public class Add_Orders extends AppCompatActivity {
 
         // Load data from MainActivity
         Intent intent = getIntent();
-        Rank = intent.getIntExtra("Rank", 0);
-        TIS = intent.getIntExtra("TIS", 0);
+        Rank = intent.getIntExtra(getString(R.string.saved_rank), 0);
+        TIS = intent.getIntExtra(getString(R.string.saved_TIS), 0);
 
         // Assign UI Variables
         OrderTypeSpinner = (Spinner) findViewById(R.id.OrderType);
@@ -81,6 +78,7 @@ public class Add_Orders extends AppCompatActivity {
         EndMonth = (Spinner) findViewById(R.id.endMonth);
         EndYear = (EditText) findViewById(R.id.endYear);
         AddOrdersButton = (Button) findViewById(R.id.addButton);
+
 
 
         // Setup variables
@@ -178,6 +176,10 @@ public class Add_Orders extends AppCompatActivity {
         EndMonth.setAdapter(adapter2);
 
 
+
+        // TODO Retrieve dates and order type if this is an edit call
+
+
         // Populate Start and End Date Fields with Current Date
         Calendar cal = Calendar.getInstance();
         int month = cal.get(Calendar.MONTH);
@@ -194,11 +196,15 @@ public class Add_Orders extends AppCompatActivity {
 
 
         // Set Modes
-        determineWarningMode();
         determineSingleDateMode();
+        WarningStatement.setVisibility(View.INVISIBLE);
 
         // Update MUTA and Pay Displays
         calculateMUTAsAndPay();
+
+
+
+        // TODO Retrieve array dates
     }
 
 
@@ -265,7 +271,6 @@ public class Add_Orders extends AppCompatActivity {
 
             // If the months and years are the same, the days need to be checked
             if (startYear == endYear && startMonth == endMonth && startDay > endDay) {
-                endDay = startDay;
                 EndDay.setText(String.format(Locale.US, "%d", startDay));
             }
 
@@ -277,38 +282,8 @@ public class Add_Orders extends AppCompatActivity {
     }
 
 
-    // Determine Warning Mode
-    // Checks if Warning Mode and SingleDateMode should be switched on
-    private void determineWarningMode() {
-
-        // DELETE
-        setWarningMode(false);
-        // DELETE
 
 
-        // TODO Check for Warning Mode (May be too complex if there are too many orders)
-
-    }
-
-    // TODO Consider integrating the above and below methods
-
-    // Warning Mode
-    // Displays warning text and disables add button if on
-    private void setWarningMode(boolean mode) {
-
-        // TODO Lets see if I need this
-        //WarningMode = mode;
-
-        if (mode) {
-            // Warning Mode On
-            WarningStatement.setVisibility(View.VISIBLE);
-            AddOrdersButton.setEnabled(false);
-        } else {
-            // Warning Mode Off
-            WarningStatement.setVisibility(View.INVISIBLE);
-            AddOrdersButton.setEnabled(true);
-        }
-    }
 
 
     // Update MUTAs and DollarAmount based on dates selected and pay per MUTA
@@ -319,19 +294,19 @@ public class Add_Orders extends AppCompatActivity {
         int[] endDate = {Integer.parseInt(EndDay.getText().toString()), EndMonth.getSelectedItemPosition(), Integer.parseInt(EndYear.getText().toString())};
 
         // Get MUTA count
-        MUTACount = RankAndTIS.getMUTAsFor(OrderTypeSpinner.getSelectedItemPosition(), startDate, endDate);
+        int MUTACount = RankAndTIS.getMUTAsFor(OrderTypeSpinner.getSelectedItemPosition(), startDate, endDate);
 
 
         // Update MUTACountView
-        String mutaStr = "MUTAs";
-        if (MUTACount == 1) mutaStr = "MUTA";
-        MUTACountView.setText(String.format(Locale.US,"%d %s", MUTACount, mutaStr));
+        String mutaStr = getString(R.string.muta_string_plural);
+        if (MUTACount == 1) mutaStr = getString(R.string.muta_string_singular);
+        MUTACountView.setText(String.format(Locale.US, "%d %s", MUTACount, mutaStr));
 
         // Retrieve Pay per MUTA from RankAndTIS
         double payPerMuta = RankAndTIS.getPayPerMuta(Rank, TIS);
 
         // Update Dollar Display with above amount, multiply pay rate by MUTACount
-        DollarAmountView.setText(String.format(Locale.US,"$%.2f", (MUTACount * payPerMuta)));
+        DollarAmountView.setText(String.format(Locale.US, "$%.2f", (MUTACount * payPerMuta)));
     }
 
 
@@ -369,20 +344,38 @@ public class Add_Orders extends AppCompatActivity {
     }
 
 
+
     // Save changes and exit
     public void saveChanges(View view) {
+
+        // Get variables
+        int startDay = Integer.parseInt(StartDay.getText().toString());
+        int startMonth = StartMonth.getSelectedItemPosition();
+        int startYear = Integer.parseInt(StartYear.getText().toString());
+        int endDay = Integer.parseInt(EndDay.getText().toString());
+        int endMonth = EndMonth.getSelectedItemPosition();
+        int endYear = Integer.parseInt(EndYear.getText().toString());
+
+
+        // TODO Check for intersecting dates
+
+
+        // Check to see if every input is valid (end date not greater than start date, years in allowable ranges, etc)
+        // Make necessary changes before passing information to MainActivity
+        dateFieldChanged();
+
         Intent intent = new Intent();
-        intent.putExtra("Type", OrderTypeSpinner.getSelectedItemPosition());
+        intent.putExtra(getString(R.string.orders_type), OrderTypeSpinner.getSelectedItemPosition());
 
         // Start Date
-        intent.putExtra("sDay", Integer.parseInt(StartDay.getText().toString()));
-        intent.putExtra("sMonth", StartMonth.getSelectedItemPosition());
-        intent.putExtra("sYear", Integer.parseInt(StartYear.getText().toString()));
+        intent.putExtra(getString(R.string.start_day), startDay);
+        intent.putExtra(getString(R.string.start_month), startMonth);
+        intent.putExtra(getString(R.string.start_year), startYear);
 
         // End Date
-        intent.putExtra("eDay", Integer.parseInt(EndDay.getText().toString()));
-        intent.putExtra("eMonth", EndMonth.getSelectedItemPosition());
-        intent.putExtra("eYear", Integer.parseInt(EndYear.getText().toString()));
+        intent.putExtra(getString(R.string.end_day), endDay);
+        intent.putExtra(getString(R.string.end_month), endMonth);
+        intent.putExtra(getString(R.string.end_year), endYear);
 
         setResult(RESULT_OK, intent);
         finish();
